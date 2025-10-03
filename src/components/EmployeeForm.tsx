@@ -403,8 +403,8 @@ export function EmployeeForm() {
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent transition bg-white text-right"
               >
                 <option value="">اختر...</option>
-                <option value="yes">نعم</option>
-                <option value="no">لا</option>
+                <option value="yes">مؤدي</option>
+                <option value="no">غير مؤدي</option>
                 <option value="exempt">معفى</option>
               </select>
             </div>
