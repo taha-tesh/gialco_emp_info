@@ -15,6 +15,9 @@ interface FormData {
   healthSituation: string;
   studyingDegree: string;
   educationLevel: string;
+  schoolYear: string; // for primary/middle/high
+  bloodType: 'A' | 'B' | 'O' | 'AB' | '';
+  bloodRh: '+' | '-' | '';
   militaryService: string;
   previousJobs: string;
   remarks: string;
@@ -34,6 +37,9 @@ export function EmployeeForm() {
     healthSituation: '',
     studyingDegree: '',
     educationLevel: '',
+    schoolYear: '',
+    bloodType: '',
+    bloodRh: '',
     militaryService: '',
     previousJobs: '',
     remarks: '',
@@ -47,6 +53,14 @@ export function EmployeeForm() {
     setMessage(null);
 
     try {
+      const needsYear = ['primary', 'middle', 'high'].includes(formData.educationLevel);
+      const educationLevelWithYear = needsYear && formData.schoolYear
+        ? `${formData.educationLevel} - السنة: ${formData.schoolYear}`
+        : formData.educationLevel;
+      const healthWithBlood = formData.bloodType && formData.bloodRh
+        ? `${formData.healthSituation}${formData.healthSituation ? ' | ' : ''}فصيلة الدم: ${formData.bloodType}${formData.bloodRh}`
+        : formData.healthSituation;
+
       const { data, error } = await supabase.from('employees').insert([
         {
           full_name: formData.fullName,
@@ -58,9 +72,9 @@ export function EmployeeForm() {
           phone_number: formData.phoneNumber,
           email: formData.email,
           address: formData.address,
-          health_situation: formData.healthSituation,
+          health_situation: healthWithBlood,
           studying_degree: formData.studyingDegree,
-          education_level: formData.educationLevel,
+          education_level: educationLevelWithYear,
           military_service: formData.militaryService,
           previous_jobs: formData.previousJobs,
           remarks: formData.remarks,
@@ -94,6 +108,9 @@ export function EmployeeForm() {
         healthSituation: '',
         studyingDegree: '',
         educationLevel: '',
+        schoolYear: '',
+        bloodType: '',
+        bloodRh: '',
         militaryService: '',
         previousJobs: '',
         remarks: '',
@@ -329,8 +346,45 @@ export function EmployeeForm() {
               required
               rows={3}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition text-right resize-none"
-              placeholder="وصف الحالة الصحية (مثل: جيدة، يعاني من أمراض مزمنة، إلخ)"
+              placeholder="وصف الحالة الصحية (مثل: جيدة، يعاني من أمراض مزمنة مع ذكر المرض ، إلخ)"
             />
+          </div>
+
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <span className="block text-sm font-medium text-gray-700 mb-2">فصيلة الدم</span>
+              <div className="flex flex-wrap gap-3">
+                {(['A','B','O','AB'] as const).map((t) => (
+                  <label key={t} className="inline-flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="bloodType"
+                      value={t}
+                      checked={formData.bloodType === t}
+                      onChange={handleChange}
+                    />
+                    <span>{t}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div>
+              <span className="block text-sm font-medium text-gray-700 mb-2">العامل الريزيسي</span>
+              <div className="flex gap-3">
+                {(['+','-'] as const).map((r) => (
+                  <label key={r} className="inline-flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="bloodRh"
+                      value={r}
+                      checked={formData.bloodRh === r}
+                      onChange={handleChange}
+                    />
+                    <span>{r}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -355,13 +409,41 @@ export function EmployeeForm() {
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent transition bg-white text-right"
               >
                 <option value="">اختر...</option>
-                <option value="high_school">ثانوية عامة</option>
+                <option value="primary">الابتدائية</option>
+                <option value="middle">المتوسطة</option>
+                <option value="high">الثانوية</option>
+                
                 <option value="diploma">دبلوم</option>
                 <option value="bachelor">بكالوريوس</option>
                 <option value="master">ماجستير</option>
                 <option value="phd">دكتوراه</option>
               </select>
             </div>
+
+            {(['primary','middle','high'] as const).includes(formData.educationLevel as any) && (
+              <div>
+                <label htmlFor="schoolYear" className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                  <GraduationCap className="w-4 h-4 ml-2" />
+                  السنة الدراسية
+                </label>
+                <select
+                  id="schoolYear"
+                  name="schoolYear"
+                  value={formData.schoolYear}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent transition bg-white text-right"
+                >
+                  <option value="">اختر السنة...</option>
+                  {(formData.educationLevel === 'primary' ? [1,2,3,4,5]
+                    : formData.educationLevel === 'middle' ? [1,2,3,4]
+                    : [1,2,3]
+                  ).map((y) => (
+                    <option key={y} value={String(y)}>السنة {y}</option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <div>
               <label htmlFor="studyingDegree" className="flex items-center text-sm font-medium text-gray-700 mb-2">
